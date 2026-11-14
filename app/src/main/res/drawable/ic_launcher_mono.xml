@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A twenty-sided die, for themed icons. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd"
+        android:pathData="M54,28 L77,41 L77,67 L54,80 L31,67 L31,41 Z M54,34 L40,43 L68,43 Z M37,46 L37,64 L50,70 Z M71,46 L58,70 L71,64 Z M54,48 L44,48 L54,68 L64,48 Z" />
+</vector>
