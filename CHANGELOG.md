@@ -6,6 +6,17 @@ line "<!-- tg", then 2-4 short lines in Russian for users (what is new, what is 
 then close it like any HTML comment. The release notes carry it, and the chat bot posts those lines.
 -->
 
+## [1.0.1] - 2026-11-15
+
+- Phone games are found again: on Android 11 and newer the tracker could not see other apps, so no game was ever recognised.
+- A session played while Questling stayed in the background is found when you come back to the app, not only after a restart (#1).
+- A game still on screen when the app looks is offered later as one whole session instead of being cut in two or lost; going back to a game after a look counts as a new session.
+
+<!-- tg
+Questling 1.0.1: игры на телефоне снова находятся сами.
+Раньше на Android 11 и новее трекер не видел игры, а сессия, сыгранная при свёрнутом Questling, терялась до перезапуска приложения. Теперь находится каждая сессия, как только вы возвращаетесь в Questling.
+-->
+
 ## [1.0.0] - 2026-11-14
 
 The first release of Questling.

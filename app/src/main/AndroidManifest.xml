@@ -11,6 +11,14 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <!-- Optional: finds phone game sessions through usage access, when the player turns that on. -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
+    <!-- Since Android 11 other apps are hidden: without this every game looks unknown and none is ever found.
+         Apps with a launcher icon are enough – every phone game has one. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
 
     <application
         android:name=".QuestApp"

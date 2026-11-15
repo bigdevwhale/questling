@@ -14,6 +14,7 @@ import android.os.Process
 object Usage {
     private const val GAP = 5 * 60_000L       // stretches closer than this are one session
     private const val MIN = 3                  // minutes: shorter ones are not worth asking about
+    private const val LOOK = 6 * 3600_000L     // how far back a look reaches past where the last one stopped
     // UsageEvents.Event types by number: the names differ between Android 9 and 10
     private const val RESUMED = 1; private const val PAUSED = 2; private const val STOPPED = 23
 
@@ -33,35 +34,60 @@ object Usage {
         if (game) ctx.packageManager.getApplicationLabel(ai).toString() else null
     }.getOrNull()
 
-    /** Game stretches between [from] and [to]; [known] packages count as games whatever the phone thinks. */
-    fun scan(ctx: Context, from: Long, to: Long, known: Set<String>, ignored: Set<String>): List<Found> = runCatching {
-        if (!allowed(ctx)) return emptyList()
+    /** What one look found: finished stretches, and the time the next look should start from. */
+    class Scan(val found: List<Found>, val upTo: Long)
+
+    private class Span(val pkg: String, val a: Long, val b: Long, val live: Boolean)
+    private class Group(val pkg: String, val start: Long, var played: Long = 0, var live: Boolean = false)
+
+    /**
+     * Game stretches that started at or after [since] and are over by [to]. A game still on screen at [to]
+     * is left for the next look: [Scan.upTo] stops at its start, so it is found whole later instead of
+     * being cut in two. A stretch never runs across [since]: what came after it is a new stretch, as the
+     * part before was already offered. [known] packages count as games whatever the phone thinks.
+     */
+    fun scan(ctx: Context, since: Long, to: Long, known: Set<String>, ignored: Set<String>): Scan = runCatching {
+        if (!allowed(ctx)) return Scan(emptyList(), since)
         val usm = ctx.getSystemService(UsageStatsManager::class.java)
-        val ev = usm.queryEvents(from, to)
+        // look back past [since], so a stretch that began before it is not mistaken for a new one
+        val ev = usm.queryEvents(since - LOOK, to)
         val e = UsageEvents.Event()
-        val open = HashMap<String, Long>()
-        val spans = ArrayList<Triple<String, Long, Long>>()
         val labels = HashMap<String, String?>()
+        val events = ArrayList<Event>()
         while (ev.hasNextEvent()) {
             ev.getNextEvent(e)
             val pkg = e.packageName ?: continue
-            if (pkg in ignored) continue
+            if (pkg in ignored || e.eventType !in setOf(RESUMED, PAUSED, STOPPED)) continue
             labels.getOrPut(pkg) { isGame(ctx, pkg, known) } ?: continue
-            when (e.eventType) {
-                RESUMED -> open.putIfAbsent(pkg, e.timeStamp)
-                PAUSED, STOPPED -> open.remove(pkg)?.let { st -> if (e.timeStamp > st) spans += Triple(pkg, st, e.timeStamp) }
+            events += Event(pkg, e.eventType == RESUMED, e.timeStamp)
+        }
+        cut(events, since, to) { labels[it] ?: it }
+    }.getOrDefault(Scan(emptyList(), since))
+
+    /** A game coming on screen ([on]) or leaving it, at [time]. */
+    class Event(val pkg: String, val on: Boolean, val time: Long)
+
+    /** Stretches out of a game's comings and goings, in time order; see [scan]. */
+    fun cut(events: List<Event>, since: Long, to: Long, label: (String) -> String): Scan {
+        val open = HashMap<String, Long>()
+        val spans = ArrayList<Span>()
+        events.forEach { e ->
+            if (e.on) open.putIfAbsent(e.pkg, e.time)
+            else open.remove(e.pkg)?.let { st -> if (e.time > st) spans += Span(e.pkg, st, e.time, false) }
+        }
+        // still on screen: runs up to [to]; a resume whose pause got lost (a reboot) long ago is dropped
+        open.forEach { (pkg, st) -> if (to - st < LOOK) spans += Span(pkg, st, to, true) }
+        val groups = ArrayList<Group>()
+        spans.groupBy { it.pkg }.forEach { (pkg, l) ->
+            var g: Group? = null; var en = 0L
+            l.sortedBy { it.a }.forEach { sp ->
+                val cur = g?.takeIf { sp.a - en <= GAP && !(it.start < since && sp.a >= since) } ?: Group(pkg, sp.a).also { groups += it }
+                cur.played += sp.b - sp.a; cur.live = cur.live || sp.live; en = maxOf(en, sp.b); g = cur
             }
         }
-        val out = ArrayList<Found>()
-        spans.groupBy { it.first }.forEach { (pkg, l) ->
-            var st = -1L; var en = -1L; var played = 0L
-            fun flush() { if (st >= 0 && played / 60_000 >= MIN) out += Found(pkg, labels[pkg] ?: pkg, st, (played / 60_000).toInt()) }
-            l.sortedBy { it.second }.forEach { (_, a, b) ->
-                if (st < 0 || a - en > GAP) { flush(); st = a; played = 0 }
-                played += b - a; en = b
-            }
-            flush()
-        }
-        out.sortedBy { it.start }
-    }.getOrDefault(emptyList())
+        val upTo = groups.filter { it.live }.minOfOrNull { it.start }?.coerceIn(since, to) ?: to
+        val out = groups.filter { !it.live && it.start >= since && it.start < upTo && it.played / 60_000 >= MIN }
+            .map { Found(it.pkg, label(it.pkg), it.start, (it.played / 60_000).toInt()) }
+        return Scan(out.sortedBy { it.start }, upTo)
+    }
 }

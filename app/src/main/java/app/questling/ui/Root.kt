@@ -34,6 +34,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import app.questling.BuildConfig
 import app.questling.container
 import app.questling.data.Friend
@@ -149,13 +152,18 @@ fun Root(s: Settings) {
     LaunchedEffect(Unit) { c.news.collect { note = it; delay(2600); note = null } }
     LaunchedEffect(Unit) { c.tick() }
     LaunchedEffect(Unit) { if (!BuildConfig.SHOTS) while (true) { c.refreshOutside(); delay(30 * 60_000L) } }
-    // phone games played since the last look
+    // phone games played since the last look: on every return to the app, not only on its first start
+    val life = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(s.tracker) {
-        if (s.tracker && !BuildConfig.DEMO && Usage.allowed(ctx)) {
-            val now = System.currentTimeMillis(); val from = if (s.scanned == 0L) now - 3 * 86400_000L else maxOf(s.scanned, now - 14 * 86400_000L)
-            val known = games.map { it.pkg }.filter { it.isNotBlank() }.toSet()
-            val found = withContext(Dispatchers.IO) { Usage.scan(ctx, from, now - 60_000, known, s.ignored) }
-            c.foundNew(found, now - 60_000)
+        if (!s.tracker || BuildConfig.DEMO) return@LaunchedEffect
+        life.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            if (!Usage.allowed(ctx)) return@repeatOnLifecycle
+            val st = c.settings.now()
+            val now = System.currentTimeMillis()
+            val since = if (st.scanned == 0L) now - 3 * 86400_000L else maxOf(st.scanned, now - 14 * 86400_000L)
+            val known = c.dao.gameList().map { it.pkg }.filter { it.isNotBlank() }.toSet()
+            val scan = withContext(Dispatchers.IO) { Usage.scan(ctx, since, now, known, st.ignored) }
+            c.foundNew(scan.found, scan.upTo)
         }
     }
     // a session running when the app opens: straight to it
