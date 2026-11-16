@@ -6,6 +6,17 @@ line "<!-- tg", then 2-4 short lines in Russian for users (what is new, what is 
 then close it like any HTML comment. The release notes carry it, and the chat bot posts those lines.
 -->
 
+## [1.1.0] - 2026-11-16
+
+### Added
+- **Lingvale, the village of the pets from all our apps:** Questling now has a small read-only bridge, so in Lingvale you can build the tavern and its residents move in with their days. The bridge answers only Lingvale signed with our key; it changes nothing and nothing leaves the phone.
+
+<!-- tg
+Питомцы Questling теперь могут жить в Lingvale – общей деревне наших приложений.
+В Lingvale для них можно построить таверну, и жильцы переедут туда сами вместе со своими днями.
+Данные остаются в Questling: деревня их только читает.
+-->
+
 ## [1.0.1] - 2026-11-15
 
 - Phone games are found again: on Android 11 and newer the tracker could not see other apps, so no game was ever recognised.
