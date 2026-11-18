@@ -169,12 +169,12 @@ fun SettingsPage(d: Data, nav: Nav) {
     val scope = rememberCoroutineScope()
     val s = d.s
     fun up(f: (Settings) -> Settings) = c.write { settings.update(f) }
-    val save = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) scope.launch { val text = Backup.export(c); runCatching { ctx.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) } }
-            c.say(tr("Копия сохранена", "Backup saved")) } }
+    val save = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        if (uri != null) scope.launch { val ok = runCatching { Backup.write(c, ctx.contentResolver.openOutputStream(uri)!!) }.isSuccess
+            c.say(if (ok) tr("Копия сохранена", "Backup saved") else tr("Не получилось сохранить копию", "Couldn't save the backup")) } }
     val open = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) scope.launch { val text = runCatching { ctx.contentResolver.openInputStream(uri)?.use { it.readBytes().decodeToString() } }.getOrNull().orEmpty()
-            c.say(if (Backup.import(c, text)) tr("Трактир восстановлен", "The tavern is restored") else tr("Это не копия Questling", "That's not a Questling backup")) } }
+        if (uri != null) scope.launch { val ok = runCatching { ctx.contentResolver.openInputStream(uri) }.getOrNull()?.let { Backup.read(c, it) } ?: false
+            c.say(if (ok) tr("Трактир восстановлен", "The tavern is restored") else tr("Это не копия Questling", "That's not a Questling backup")) } }
     val askRead = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok -> up { it.copy(shotsAuto = ok) } }
     Page(tr("Настройки", "Settings"), { nav.pop() }) {
         Fold(Icons.PAD, C.acc, tr("Игрок", "The player"), s.player.ifBlank { tr("имя и платформы", "name and platforms") }) {
@@ -217,9 +217,9 @@ fun SettingsPage(d: Data, nav: Nav) {
             Text(tr("За окном – погода в городе: ${s.town.ifBlank { "не определён" }}", "Out of the window – the weather in: ${s.town.ifBlank { "unknown" }}"), style = T.small, modifier = Modifier.padding(top = 10.dp))
         }
         Fold(Icons.SAVE, C.ok, tr("Резервная копия", "Backup"), tr("файл со всем журналом", "one file with the whole journal")) {
-            Btn(tr("Сохранить копию", "Save a backup"), Modifier.fillMaxWidth(), small = true) { save.launch("questling-${java.time.LocalDate.now()}.json") }
-            Ghost(tr("Восстановить из файла", "Restore from a file"), Modifier.fillMaxWidth().padding(top = 8.dp), small = true) { open.launch(arrayOf("application/json", "*/*")) }
-            Text(tr("В копии – игры, сессии, игроки, питомцы и трофеи. Обложки и снимки в файл не попадают. Восстановление заменит всё, что есть сейчас.", "The backup holds games, sessions, players, creatures and trophies. Covers and pictures are not in the file. Restoring replaces everything there is now."), style = T.tiny, modifier = Modifier.padding(top = 6.dp))
+            Btn(tr("Сохранить копию", "Save a backup"), Modifier.fillMaxWidth(), small = true) { save.launch(Backup.fileName()) }
+            Ghost(tr("Восстановить из файла", "Restore from a file"), Modifier.fillMaxWidth().padding(top = 8.dp), small = true) { open.launch(arrayOf("application/zip", "application/json", "*/*")) }
+            Text(tr("В копии – игры, сессии, игроки, питомцы и трофеи, а с ними обложки и снимки. Восстановление заменит всё, что есть сейчас.", "The backup holds games, sessions, players, creatures and trophies, with the covers and pictures. Restoring replaces everything there is now."), style = T.tiny, modifier = Modifier.padding(top = 6.dp))
         }
         Fold(Icons.HEART, C.bad, tr("Поддержать", "Support"), tr("StillCraft держится на поддержке пользователей", "StillCraft lives on goodwill")) { LinkRow(Icons.HEART, C.bad, tr("Поддержать разработку", "Support development"), null, Community.SUPPORT) }
         Fold(Icons.GLOBE, C.ok, "StillCraft", tr("Questling – одно из небольших приложений StillCraft", "Questling is one of the small StillCraft apps")) {

@@ -6,6 +6,17 @@ line "<!-- tg", then 2-4 short lines in Russian for users (what is new, what is 
 then close it like any HTML comment. The release notes carry it, and the chat bot posts those lines.
 -->
 
+## [1.2.0] - 2026-11-18
+
+### Added
+- **Covers and pictures are in the backup:** the backup is now a zip with the journal, the games' covers and the sessions' screenshots and photos, so a restore brings the pictures back too. Older backups (a bare JSON file) still load; the pictures on the phone stay as they are for those.
+- **Moving to a new phone through Lingvale:** Lingvale can now gather the backups of all our apps into one file and load them back on another phone. Questling hands it the same backup file the settings save and takes one back the same way. Only Lingvale signed with our key is answered, loading happens only after you confirm it in Lingvale, and nothing leaves the phone.
+
+<!-- tg
+В резервную копию теперь попадают обложки игр и снимки сессий. Старые копии по-прежнему читаются.
+Переезд на новый телефон через Lingvale: деревня собирает копии всех наших приложений в один файл и возвращает их на новом телефоне.
+-->
+
 ## [1.1.0] - 2026-11-16
 
 ### Added

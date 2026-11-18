@@ -2,11 +2,89 @@ package app.questling.data
 
 import androidx.room.withTransaction
 import app.questling.AppContainer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.BufferedInputStream
+import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
+import java.time.LocalDate
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
-/** The whole journal as one JSON file: every table and the settings. Import replaces everything. Pictures are not in it. */
+/**
+ * The whole journal as one file, to keep or to carry to another phone: a zip with `questling.json` (every table and
+ * the settings), the games' covers and the sessions' screenshots and photos. A bare JSON file, as the first versions
+ * saved (without pictures), is read too. Import replaces everything.
+ */
 object Backup {
+    private const val JSON = "questling.json"
+    private const val COVERS = "covers"
+    private const val PHOTOS = "photos"
+    fun fileName() = "questling-${LocalDate.now()}.zip"
+
+    /** Writes the journal into [out] and closes it. Only the pictures the journal still points at go in. */
+    suspend fun write(c: AppContainer, out: OutputStream) {
+        val text = export(c)
+        val covers = c.dao.gameList().map { it.cover }.filter { it.isNotBlank() }.toSet()
+        val shots = c.dao.playList().flatMap { it.shotList }.toSet()
+        withContext(Dispatchers.IO) {
+            ZipOutputStream(out.buffered()).use { z ->
+                z.putNextEntry(ZipEntry(JSON)); z.write(text.toByteArray()); z.closeEntry()
+                fun put(dir: File, folder: String, names: Set<String>) = names.forEach { n ->
+                    val f = File(dir, File(n).name); if (!f.isFile) return@forEach
+                    z.putNextEntry(ZipEntry("$folder/${f.name}")); f.inputStream().use { it.copyTo(z) }; z.closeEntry() }
+                put(Media.covers(c.app), COVERS, covers)
+                put(Media.shots(c.app), PHOTOS, shots)
+            }
+        }
+    }
+
+    /**
+     * Reads a journal from [input] – a zip or a bare JSON – and closes it; false when the file isn't one of ours,
+     * and nothing changes then.
+     */
+    suspend fun read(c: AppContainer, input: InputStream): Boolean {
+        val fresh = File(c.app.cacheDir, "restore")
+        val text = withContext(Dispatchers.IO) { runCatching { input.use { unpack(it, fresh) } }.getOrNull() }
+        val ok = text != null && import(c, text)
+        withContext(Dispatchers.IO) {
+            // a zip's pictures take the place of the old ones; a bare JSON brings none, and those here stay for it
+            if (ok && fresh.exists()) for ((folder, dir) in listOf(COVERS to Media.covers(c.app), PHOTOS to Media.shots(c.app))) {
+                dir.listFiles()?.forEach { it.delete() }
+                File(fresh, folder).listFiles()?.forEach { it.copyTo(File(dir, it.name), overwrite = true) }
+            }
+            fresh.deleteRecursively()
+        }
+        return ok
+    }
+
+    /** The JSON out of [input]; a zip's pictures are put under [into] on the way. */
+    private fun unpack(input: InputStream, into: File): String? {
+        into.deleteRecursively()
+        val src = BufferedInputStream(input)
+        src.mark(4); val head = ByteArray(2); val n = src.read(head); src.reset()
+        if (n < 2 || head[0] != 'P'.code.toByte() || head[1] != 'K'.code.toByte()) return src.readBytes().decodeToString()
+        var text: String? = null
+        into.mkdirs()   // a zip always stands for its pictures, even when it has none
+        ZipInputStream(src).use { z ->
+            while (true) {
+                val e = z.nextEntry ?: break
+                val name = e.name.substringAfterLast('/')   // only the file's own name: nothing is written outside the folders
+                val folder = e.name.substringBefore('/', "")
+                when {
+                    e.isDirectory || name.isBlank() || name == "." || name == ".." -> {}
+                    e.name == JSON -> text = z.readBytes().decodeToString()
+                    folder == COVERS || folder == PHOTOS -> File(into, folder).apply { mkdirs() }.let { d -> File(d, name).outputStream().use { z.copyTo(it) } }
+                }
+            }
+        }
+        return text
+    }
+
     private fun arr(l: List<JSONObject>) = JSONArray().apply { l.forEach { put(it) } }
     private fun JSONObject.objs(k: String): List<JSONObject> = optJSONArray(k)?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } } ?: emptyList()
     private fun o(vararg kv: Pair<String, Any?>) = JSONObject().apply { kv.forEach { (k, v) -> put(k, v) } }
