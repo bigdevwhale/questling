@@ -6,9 +6,8 @@
 ## 0. Перед стартом
 
 - **Нужен AAB, не APK.** Релизный workflow уже кладёт в GitHub Release `Questling-v<версия>.aab` рядом с
-  `Questling.apk`. Для первой загрузки годится **`Questling-v1.2.0.aab`** из v1.2.0 — он подписан релизным ключом.
-  В рабочей копии есть одна правка после 1.2.0 (погодный запрос представлялся чужим User-Agent `Pumpling/1.0`,
-  теперь `Questling/1.0`; MET Norway требует, чтобы приложение называло себя верно) — она уйдёт со следующей версией.
+  `Questling.apk`. Для первой загрузки — **`Questling-v1.2.1.aab`** из v1.2.1 (подписан релизным ключом; в ней
+  погодный запрос называет себя `Questling/1.0`, а не чужим `Pumpling/1.0` — MET Norway этого требует).
 - **Языки.** AAB собирается без разбиения по языкам (`bundle.language.enableSplit = false`), иначе Play
   ставит только язык телефона и переключение языка в настройках перестаёт работать. Не удаляйте этот блок.
 - **Регистрация имени пакета.** Play Console при создании приложения пишет «You can't use this package
@@ -208,7 +207,7 @@ Photo Picker не умеет отбирать по времени, а польз
 ## 6. Релиз
 
 1. Testing → **Closed testing** (для нового аккаунта; иначе сразу Production или Internal testing) → Create new release.
-2. Загрузить `Questling-v1.2.0.aab` из GitHub Release (или AAB следующей версии, если она выйдет раньше).
+2. Загрузить `Questling-v1.2.1.aab` из GitHub Release.
 3. Release name — номер версии. Release notes:
 
 ```
@@ -220,7 +219,7 @@ Photo Picker не умеет отбирать по времени, а польз
 </ru-RU>
 ```
 
-   В `release_notes.txt` сейчас «First release on Google Play» и новинки 1.2.0 (≤500 символов).
+   В `release_notes.txt` сейчас «First release on Google Play» и новинки 1.2.0–1.2.1 (≤500 символов).
 4. Review release → Start rollout. Первая проверка Google обычно занимает от нескольких дней до недели;
    с декларацией фото — дольше.
 5. После установки из Play проверьте: Настройки → Язык → Русский/English — экран переключается сразу;

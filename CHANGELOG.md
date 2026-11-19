@@ -6,6 +6,19 @@ line "<!-- tg", then 2-4 short lines in Russian for users (what is new, what is 
 then close it like any HTML comment. The release notes carry it, and the chat bot posts those lines.
 -->
 
+## [1.2.1] - 2026-11-19
+
+### Fixed
+- **The weather service knows who is asking:** the tavern window's weather requests now introduce themselves as Questling, as MET Norway asks every app to do.
+
+### Changed
+- **Ready for Google Play:** the first version to go to Google Play, with a privacy policy in English and Russian. The APK on GitHub and the app from Play are signed with the same key and update each other.
+
+<!-- tg
+Questling 1.2.1 готовится к выходу в Google Play. Версия из Play и APK с GitHub подписаны одним ключом и обновляют друг друга.
+Запросы погоды для окна трактира теперь честно представляются как Questling.
+-->
+
 ## [1.2.0] - 2026-11-18
 
 ### Added
