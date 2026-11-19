@@ -1,0 +1,1 @@
+First release on Google Play. The backup now keeps the games' covers and the sessions' pictures too, and older backups still load. Moving to a new phone: Lingvale, the village of our apps, gathers every app's backup into one file and loads it back on the new phone.

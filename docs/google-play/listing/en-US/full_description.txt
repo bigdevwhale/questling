@@ -1,0 +1,44 @@
+You keep a small tavern at the crossroads of worlds, «The Last Save». Creatures live by its hearth: some came out of game worlds – a slime, a mimic, a goblin merchant, a living d20 – others are ordinary animals with a gamepad in their paws. Every session you play feeds them, and at night what they ate turns into growth. The way you play decides who comes next.
+
+🎮 ANY GAME
+• Video games on any platform, board games, card games, tabletop RPG campaigns, phone games
+• Type a title and the catalogue (Wikidata and Wikipedia) fills in the cover, the year, the maker and the genres – or fill it in by hand
+• Status, a rating out of ten and a note on where you stopped
+
+⏱ SESSIONS
+• Press the big button and the clock runs, in the background too
+• Or write down a session you already played
+• At the end: how it ended, everybody's score, a moment (a boss, a chapter, the credits, 100%), the mood, a note
+
+📸 SCREENSHOTS BY THEMSELVES
+Screenshots the phone made during a session are offered when you finish it. Add photos of the table from the gallery or the phone's own camera; everything gathers in the album.
+
+📱 PHONE GAMES FOUND FOR YOU
+Turn on usage access and the phone tells which games you played and for how long. Each stretch becomes a session with one tap.
+
+🎲 TABLE TOOLS
+Dice from d4 to d100, a fair «who goes first», a turn timer and a score sheet that knows who won.
+
+👥 PLAYERS
+The people you play with: hours together, the score between you, your game together.
+
+🐾 36 CREATURES
+Found by the way you play: the slime for RPG hours, the meeple for board game nights, the necro cat for late sessions, the corgi for coming back to an old game. Each one is drawn as pixel art and has six stats, a class and a favourite genre from the games it grew on. Three live by the fire and double the gold for their thing.
+
+🏆 NEARLY 300 TROPHIES
+Bronze, silver, gold and platinum: ladders for sessions, hours, games, genres, wins and company, and dozens of secret ones.
+
+📜 WEEKLY QUESTS AND A SEASON
+Three quests every Monday; a season is a quarter with thirty levels of rewards and a shop for the tavern. Nothing can be bought with money.
+
+📊 THE SUMMARY
+Hours by week, month, season and year, a calendar, top games, genres, platforms, wins and losses, weekdays and hours of the day, your player's shape as a six-rayed star and the year in games. Nine kinds of share cards.
+
+☕ REST PAYS
+After a long stretch without a break your pet yawns and suggests a stretch – once, without nagging. Breaks bring gold, and the hours past three a day feed the creatures less. Nobody starves, nothing is lost.
+
+ENGLISH AND RUSSIAN
+Every screen is written in both languages; switch in the settings.
+
+PRIVACY
+No account, no ads, no analytics. Your journal stays on your phone; the settings save everything, pictures included, to one backup file you keep. Only the game title you look up goes to Wikidata and Wikipedia, and the town for the tavern window's weather goes to a weather service. Free and open source.

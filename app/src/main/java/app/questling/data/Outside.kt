@@ -27,14 +27,14 @@ data class Outside(val weather: Weather, val cloud: Int, val temp: Double, val s
 data class Town(val name: String, val region: String, val lat: Double, val lon: Double)
 
 /**
- * The real weather for the gym window: Open-Meteo, or MET Norway when Open-Meteo can't be reached.
+ * The real weather for the tavern window: Open-Meteo, or MET Norway when Open-Meteo can't be reached.
  * Nothing but the town's coordinates is sent.
  */
 object OutsideSource {
     private fun get(url: String): String {
         val c = URL(url).openConnection() as HttpURLConnection
         c.connectTimeout = 7000; c.readTimeout = 9000
-        c.setRequestProperty("User-Agent", "Pumpling/1.0 (https://github.com/bigdevwhale/pumpling)")
+        c.setRequestProperty("User-Agent", "Questling/1.0 (https://github.com/bigdevwhale/questling)")
         try {
             if (c.responseCode !in 200..299) error("HTTP ${c.responseCode}")
             return c.inputStream.bufferedReader().use { it.readText() }
