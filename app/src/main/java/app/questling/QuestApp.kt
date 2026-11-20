@@ -302,7 +302,7 @@ class AppContainer(context: Context) {
     /** After any act: finds, quests, then trophies (twice over, as trophies count trophies). */
     private suspend fun afterAct() {
         var f = facts()
-        lay(Engine.finds(f, f.pets.map { it.species }.toSet()))
+        // quests first, on their own: nothing else going wrong may hold back their gold (#3)
         val s = f.s
         val t = clock(); val monday = weekStart(t)
         val wf = WeekFacts(monday, f.plays, f.games)
@@ -316,6 +316,7 @@ class AppContainer(context: Context) {
             val pets = dao.petList()
             newly.forEach { gold(Engine.bonus(it.gold, setOf(Perk.QUEST), pets)); seasonXp(Season.QUEST) }
         }
+        runCatching { f = facts(); lay(Engine.finds(f, f.pets.map { it.species }.toSet())) }.onFailure { android.util.Log.e("Questling", "finds", it) }
         repeat(3) {
             f = facts()
             val fresh = Trophies.fresh(f)
@@ -331,6 +332,9 @@ class AppContainer(context: Context) {
     }
 
     /** Daily housekeeping: the night's growth, a new season, quests. */
+    /** A quest that shows as done but wasn't paid (#3): settles it now. */
+    suspend fun settle() = lock.withLock { afterAct() }
+
     suspend fun tick() = lock.withLock {
         val s = settings.now(); val t = clock()
         if (s.digested < t) {

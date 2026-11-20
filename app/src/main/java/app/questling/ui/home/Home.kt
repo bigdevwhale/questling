@@ -183,9 +183,14 @@ fun HomeScreen(d: Data, nav: Nav) {
     dayOpen?.let { day -> DaySheet(day, d, nav) { dayOpen = null } }
     if (quests) Sheet({ quests = false }) {
         Text(tr("Задания недели", "This week's quests"), style = T.h2)
-        Text(tr("Новые – каждый понедельник. За них дают золото и опыт сезона.", "New ones every Monday. They bring gold and season xp."), style = T.small, modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
+        Text(tr("Новые – каждый понедельник. Каждое задание награждается сразу, как только выполнено: золото и опыт сезона.",
+            "New ones every Monday. Each quest pays as soon as it's done: gold and season xp."), style = T.small, modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
         val monday = weekStart(d.today)
         val facts = WeekFacts(monday, d.plays, d.games)
+        // done on the page but not paid: settle it at once (#3)
+        val unpaid = s.questWeek == monday && s.quests.mapNotNull { Quests.byId[it] }.any { it.id !in s.questsDone && it.progress(facts) >= it.need }
+        val qc = androidx.compose.ui.platform.LocalContext.current.let { (it.applicationContext as app.questling.QuestApp).container }
+        androidx.compose.runtime.LaunchedEffect(unpaid) { if (unpaid) qc.settle() }
         s.quests.mapNotNull { Quests.byId[it] }.forEach { q ->
             val done = q.id in s.questsDone
             Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -195,7 +200,8 @@ fun HomeScreen(d: Data, nav: Nav) {
                     Text(q.title, style = if (done) T.body.copy(color = C.mute) else T.body)
                     if (!done && s.questWeek == monday) Text(q.shown(facts), style = T.tiny)
                 }
-                Text("+${q.gold}", style = T.smallB.copy(color = C.gold))
+                // what was paid shows as paid
+                if (done) Text(tr("получено +${q.gold}", "got +${q.gold}"), style = T.small.copy(color = C.ok)) else Text("+${q.gold}", style = T.smallB.copy(color = C.gold))
             }
         }
     }
