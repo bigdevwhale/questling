@@ -1,5 +1,7 @@
 package app.questling.ui
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.offset
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -233,21 +235,65 @@ fun Root(s: Settings) {
     LaunchedEffect(Unit) { Start.open = null }
 }
 
+/**
+ * The bottom bar as the tavern's counter: honey planks with a brass trim and rivets, drawn in code, and pixel icons
+ * from the sheet (nav_*). The open tab rises a little in a warm glow; the medallion in the middle starts a session.
+ */
 @Composable
 private fun Dock(s: Settings, sel: Int, onSel: (Int) -> Unit, onPlay: () -> Unit) {
-    val tabs = listOf(tr("Трактир", "Tavern") to Icons.MUG, tr("Журнал", "Journal") to Icons.LOG, tr("Трофеи", "Trophies") to Icons.TROPHY, tr("Питомцы", "Creatures") to Icons.PAW)
-    Row(Modifier.fillMaxWidth().shadow(12.dp, ambientColor = C.shadow, spotColor = C.shadow).background(C.nav).navigationBarsPadding().padding(top = 6.dp, bottom = 6.dp),
-        verticalAlignment = Alignment.CenterVertically) {
-        tabs.forEachIndexed { i, (label, ic) ->
-            if (i == 2) Box(Modifier.weight(1.1f), contentAlignment = Alignment.Center) {
-                Box(Modifier.size(56.dp).clip(CircleShape).background(if (s.live.on) C.ok else C.acc).clickable(onClick = onPlay), contentAlignment = Alignment.Center) {
-                    Icon(if (s.live.on) Icons.TIMER else Icons.PLAY, C.accInk, 28.dp) }
-            }
-            val col = if (i == sel) C.acc else C.mute
-            Column(Modifier.weight(1f).clickable(remember { MutableInteractionSource() }, null) { onSel(i) }, horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(ic, col, 24.dp)
-                Text(label, style = T.tiny.copy(color = col), modifier = Modifier.padding(top = 2.dp))
+    val tabs = listOf(tr("Трактир", "Tavern") to ("tavern" to Icons.MUG), tr("Журнал", "Journal") to ("journal" to Icons.LOG),
+        tr("Трофеи", "Trophies") to ("trophies" to Icons.TROPHY), tr("Питомцы", "Creatures") to ("pets" to Icons.PAW))
+    val wood = listOf(androidx.compose.ui.graphics.Color(0xFF8A5A33), androidx.compose.ui.graphics.Color(0xFF6E4426), androidx.compose.ui.graphics.Color(0xFF55331C))
+    val brass = androidx.compose.ui.graphics.Color(0xFFE2B45A)
+    Box(Modifier.fillMaxWidth()) {
+        // the counter
+        androidx.compose.foundation.Canvas(Modifier.matchParentSize().padding(top = 14.dp)) {
+            drawRect(androidx.compose.ui.graphics.Brush.verticalGradient(wood))
+            val seam = androidx.compose.ui.graphics.Color(0x33000000)
+            // planks: two long seams, and joints staggered between them
+            for (k in 1..2) drawRect(seam, androidx.compose.ui.geometry.Offset(0f, size.height * k / 3f), androidx.compose.ui.geometry.Size(size.width, 2f))
+            for (k in 0..5) { val x = size.width * (k + if (k % 2 == 0) .3f else .8f) / 6f; val row = k % 3
+                drawRect(seam, androidx.compose.ui.geometry.Offset(x, size.height * row / 3f), androidx.compose.ui.geometry.Size(2f, size.height / 3f)) }
+            // the brass trim along the top, with rivets
+            drawRect(androidx.compose.ui.graphics.Color(0xFF3A2414), size = androidx.compose.ui.geometry.Size(size.width, 7.dp.toPx()))
+            drawRect(brass, androidx.compose.ui.geometry.Offset(0f, 1.dp.toPx()), androidx.compose.ui.geometry.Size(size.width, 4.dp.toPx()))
+            drawRect(androidx.compose.ui.graphics.Color(0x66FFFFFF), androidx.compose.ui.geometry.Offset(0f, 1.dp.toPx()), androidx.compose.ui.geometry.Size(size.width, 1.dp.toPx()))
+            val n = 9
+            for (k in 0 until n) { val x = size.width * (k + .5f) / n
+                drawCircle(androidx.compose.ui.graphics.Color(0xFF3A2414), 3.dp.toPx(), androidx.compose.ui.geometry.Offset(x, 3.dp.toPx()))
+                drawCircle(brass, 2.dp.toPx(), androidx.compose.ui.geometry.Offset(x, 3.dp.toPx())) }
+        }
+        Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(top = 18.dp, bottom = 6.dp), verticalAlignment = Alignment.Bottom) {
+            tabs.forEachIndexed { i, (label, art) ->
+                if (i == 2) Box(Modifier.weight(1.15f), contentAlignment = Alignment.BottomCenter) {
+                    // the medallion: a brass ring standing proud of the counter
+                    // the medallion is its own brass ring; the hourglass sits on a dark disc while a session runs
+                    Box(Modifier.offset(y = (-6).dp).size(68.dp).shadow(10.dp, CircleShape).clip(CircleShape)
+                        .background(if (s.live.on) androidx.compose.ui.graphics.Brush.radialGradient(listOf(androidx.compose.ui.graphics.Color(0xFF2F6F62), androidx.compose.ui.graphics.Color(0xFF173A33))) else androidx.compose.ui.graphics.SolidColor(androidx.compose.ui.graphics.Color(0xFF3A2414)))
+                        .then(if (s.live.on) Modifier.border(3.dp, brass, CircleShape) else Modifier).clickable(onClick = onPlay), contentAlignment = Alignment.Center) {
+                        NavArt(if (s.live.on) "live" else "play", if (s.live.on) Icons.TIMER else Icons.PLAY, if (s.live.on) 44.dp else 68.dp, 1f)
+                    }
+                }
+                val on = i == sel
+                val lift by androidx.compose.animation.core.animateDpAsState(if (on) (-5).dp else 0.dp, label = "lift")
+                Column(Modifier.weight(1f).clickable(remember { MutableInteractionSource() }, null) { onSel(i) }, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(Modifier.offset(y = lift).size(44.dp), contentAlignment = Alignment.Center) {
+                        if (on) Box(Modifier.size(44.dp).clip(CircleShape).background(androidx.compose.ui.graphics.Brush.radialGradient(listOf(androidx.compose.ui.graphics.Color(0x88FFC966), androidx.compose.ui.graphics.Color(0x00FFC966)))))
+                        NavArt(art.first, art.second, if (on) 38.dp else 32.dp, if (on) 1f else .72f)
+                    }
+                    Text(label, style = T.tiny.copy(color = if (on) androidx.compose.ui.graphics.Color(0xFFFFD98A) else androidx.compose.ui.graphics.Color(0xCCF3E3C8),
+                        fontWeight = if (on) androidx.compose.ui.text.font.FontWeight.Bold else null), modifier = Modifier.padding(top = 1.dp))
+                }
             }
         }
     }
+}
+
+/** A bar icon from the sheet, or the plain vector one until the sheet is cut. */
+@Composable
+private fun NavArt(name: String, fallback: Icons, size: androidx.compose.ui.unit.Dp, alpha: Float) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val img = remember(name) { app.questling.ui.art.Art.get(ctx, "nav_$name") }
+    if (img == null) { Icon(fallback, androidx.compose.ui.graphics.Color(0xFFF3E3C8).copy(alpha = alpha), size * .7f); return }
+    androidx.compose.foundation.Image(img, null, Modifier.size(size), alpha = alpha, filterQuality = androidx.compose.ui.graphics.FilterQuality.Medium)
 }

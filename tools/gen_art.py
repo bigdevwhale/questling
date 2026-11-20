@@ -153,6 +153,15 @@ Objects in order (left to right, top to bottom):
 5 a small heap of gold coins, 6 a bronze trophy cup, 7 a silver trophy cup, 8 a gold trophy cup,
 9 a platinum trophy cup with a pale blue shine, 10 a fan of five playing cards, 11 a brass hourglass, 12 a rolled quest scroll tied with a red ribbon,
 13 a small wooden treasure chest, 14 a speckled creature egg in a nest of straw, 15 a round red health potion flask, 16 an old instant camera.""",
+    "dock": """Use your image generation tool to create ONE image. Do nothing else (no file copying).
+
+Image: a sprite sheet of 6 menu icons for the bottom bar of a cozy gaming-diary app set in an adventurers' tavern, each a separate object, front view, bold and readable at small size.
+""" + OBJ_STYLE + """
+Layout: 3 columns x 2 rows of equal square cells on a flat solid pure magenta (#FF00FF) background. One object per cell, centered, filling about three quarters of the cell, with clear margin; no text, no grid lines, no shadows on the background.
+Objects in order (left to right, top to bottom):
+1 a big wooden tavern ale mug with golden foam spilling over and a brass band, 2 a thick leather-bound quest journal with a red ribbon bookmark and a feather quill tucked in,
+3 a shining gold trophy cup with a small laurel wreath, 4 a speckled creature egg with a teal pattern sitting in a small nest of straw,
+5 a round brass medallion button with a glowing amber gem in the middle shaped like a play triangle, 6 a brass hourglass with glowing golden sand.""",
     "hall": banner("a trophy hall in an adventurers' guild: tall stone arches, wooden shelves and pedestals with golden, silver and bronze trophy cups, medals on ribbons, hanging banners, warm torchlight."),
     "journal": banner("an adventurers' map room: a big wooden table with an unrolled world map, small figurines and dice on it, a quill and ink, shelves of journals and scrolls, a round window with sunset sky, lanterns."),
     "shelf": banner("a cozy game library corner of a tavern: tall wooden shelves packed with colourful board game boxes and game cartridges and discs, an armchair, a reading lamp, a ladder, warm evening light."),

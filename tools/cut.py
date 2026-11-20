@@ -130,6 +130,11 @@ def main():
             for name, fr in zip(names, frames(SHEETS / f"{sheet}.png", 6, 3)):
                 save(fr, f"egg_{name}")
             print(sheet)
+    # the bottom bar's icons
+    if (SHEETS / "dock.png").exists():
+        for name, fr in zip(["tavern", "journal", "trophies", "pets", "play", "live"], frames(SHEETS / "dock.png", 3, 2)):
+            save(fr, f"nav_{name}")
+        print("dock")
     for b in ("hall", "journal", "shelf"):
         if (SHEETS / f"{b}.png").exists():
             g = Image.open(SHEETS / f"{b}.png").convert("RGB")
