@@ -6,6 +6,19 @@ line "<!-- tg", then 2-4 short lines in Russian for users (what is new, what is 
 then close it like any HTML comment. The release notes carry it, and the chat bot posts those lines.
 -->
 
+## [1.3.0] - 2026-11-20
+
+### Changed
+- **The bottom bar is the tavern's counter:** honey planks with a brass trim and rivets, pixel icons for the tavern, the journal, the trophies and the creatures, and a brass medallion in the middle to start a session (an hourglass while one runs). The open tab rises a little in a warm glow.
+
+### Fixed
+- **A weekly quest could show as done and not be paid (#3).** Quests are now checked first, on their own, so nothing else can hold back their gold; and a quest the list shows as done but unpaid is settled the moment the list opens. Done quests say what they brought.
+
+<!-- tg
+Нижнее меню теперь – трактирная стойка с пиксельными иконками и латунным медальоном «Играть»
+Исправлено: задания недели могли показаться выполненными, но не принести золото. Теперь каждое платит сразу, а уже выполненные засчитаются при открытии списка
+-->
+
 ## [1.2.1] - 2026-11-19
 
 ### Fixed
