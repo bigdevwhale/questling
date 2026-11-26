@@ -9,10 +9,10 @@ then close it like any HTML comment. The release notes carry it, and the chat bo
 ## [1.3.1] - 2026-11-26
 
 ### Added
-- **Hours played before Questling (#5):** a game's card takes the hours you had before Questling – thousands from Steam, say – in one go. They count in the game's hours, but are not a session, so the average and longest sessions stay true, and they bring no rewards. The "Already played" form points to it.
+- **Hours played before Questling (#5):** a game's card takes the hours you had before – thousands from Steam, say – in one go. They count in the game's hours but are not a session and bring no rewards.
 
 ### Fixed
-- **Phone game sessions could go missing (#4).** When a game switched screens inside itself – an ad, a loader, a login – the tracker took it for the game closing and lost the rest of the session. A game now counts as on screen while any of its screens is.
+- **Phone game sessions could go missing (#4)** when a game switched screens inside itself – an ad, a loader, a login. A game now counts as open while any of its screens is.
 
 <!-- tg
 Новое: в карточке игры можно сразу вписать часы, наигранные до Questling, например тысячи часов из Steam. Они войдут в часы игры, но не станут сессией
