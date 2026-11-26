@@ -118,6 +118,9 @@ fun PlayEditPage(scr: Screen.PlayEdit, d: Data, nav: Nav) {
             Field(minutes, { v -> minutes = v.filter { it.isDigit() }.take(4) }, "60", Modifier.width(84.dp), number = true, center = true)
             listOf(15, 30, 60, 90, 120, 180).forEach { m -> Chip(if (m < 60) "$m" else dur(m * 60), minutes == m.toString()) { minutes = m.toString() } }
         }
+        // years of play don't fit a session: they go on the game, in hours (#5)
+        if (old == null && g != null) Text(tr("Наиграли сотни часов ещё до Questling? Впишите их в карточку игры →", "Hundreds of hours from before Questling? Put them on the game →"),
+            style = T.small.copy(color = C.acc), modifier = Modifier.padding(top = 8.dp).clip(RoundedCornerShape(8.dp)).clickable { nav.push(Screen.GameEdit(g.id)) }.padding(vertical = 4.dp))
         if (plats.size > 1) { Label(tr("На чём", "On what")); ChipRow(plats.map { Kinds.platformTitle(it) }, plats.indexOf(platform)) { platform = plats[it] } }
         Label(tr("С кем", "With whom"))
         FriendPicker(d.friends, friends, onAdd = { newFriend = true }) { friends = it }

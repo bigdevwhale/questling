@@ -95,7 +95,7 @@ object Backup {
             put("app", "questling"); put("version", 1); put("at", System.currentTimeMillis())
             put("settings", c.settings.now().json())
             put("games", arr(d.gameList().map { o("id" to it.id, "title" to it.title, "kind" to it.kind, "platform" to it.platform, "genres" to it.genres, "cover" to it.cover, "status" to it.status,
-                "added" to it.added, "finished" to it.finished, "rating" to it.rating, "note" to it.note, "pkg" to it.pkg, "year" to it.year, "maker" to it.maker, "best" to it.best) }))
+                "added" to it.added, "finished" to it.finished, "rating" to it.rating, "note" to it.note, "pkg" to it.pkg, "year" to it.year, "maker" to it.maker, "best" to it.best, "earlier" to it.earlier) }))
             put("plays", arr(d.playList().map { o("id" to it.id, "gameId" to it.gameId, "day" to it.day, "start" to it.start, "minutes" to it.minutes, "platform" to it.platform, "result" to it.result,
                 "score" to it.score, "place" to it.place, "friends" to it.friends, "mood" to it.mood, "note" to it.note, "shots" to it.shots, "breaks" to it.breaks, "auto" to it.auto,
                 "moment" to it.moment, "tools" to it.tools) }))
@@ -114,7 +114,7 @@ object Backup {
         c.db.withTransaction {
             d.wipeGames(); d.wipePlays(); d.wipeSeats(); d.wipeFriends(); d.wipePets()
             j.objs("games").forEach { d.insert(Game(it.getLong("id"), it.getString("title"), it.optString("kind", Game.VIDEO), it.optString("platform"), it.optString("genres"), it.optString("cover"),
-                it.optString("status", Game.PLAYING), it.optLong("added"), it.optLong("finished"), it.optInt("rating"), it.optString("note"), it.optString("pkg"), it.optInt("year"), it.optString("maker"), it.optInt("best"))) }
+                it.optString("status", Game.PLAYING), it.optLong("added"), it.optLong("finished"), it.optInt("rating"), it.optString("note"), it.optString("pkg"), it.optInt("year"), it.optString("maker"), it.optInt("best"), it.optInt("earlier"))) }
             j.objs("plays").forEach { d.insert(Play(it.getLong("id"), it.getLong("gameId"), it.getLong("day"), it.optLong("start"), it.getInt("minutes"), it.optString("platform"), it.optInt("result"),
                 it.optInt("score", Int.MIN_VALUE), it.optInt("place"), it.optString("friends"), it.optInt("mood"), it.optString("note"), it.optString("shots"), it.optInt("breaks"), it.optBoolean("auto"),
                 it.optString("moment"), it.optInt("tools"))) }

@@ -254,7 +254,7 @@ class Painter(private val ctx: Context, private val d: Data, private val look: L
     private fun game(id: Long): Pair<Bitmap, String> {
         val g = d.gameById[id] ?: d.recent.firstOrNull(); val (b, c) = base(when (g?.status) { Game.HUNDRED -> tr("пройдена на 100%", "100% done"); Game.FINISHED -> tr("пройдена", "finished"); else -> tr("игра", "game") })
         if (g == null) return b to ""
-        val plays = d.byGame[g.id].orEmpty(); val minutes = plays.sumOf { it.minutes }
+        val plays = d.byGame[g.id].orEmpty(); val minutes = d.minutes(g.id)
         val cw = if (look.story) 520f else 380f; val ch = cw * 1.34f
         var y = top + 20
         c.cover(g, RectF((W - cw) / 2, y, (W + cw) / 2, y + ch), 36f)

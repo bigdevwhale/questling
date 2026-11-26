@@ -1,6 +1,7 @@
 package app.questling.data
 
 import android.content.Context
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -10,6 +11,8 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
@@ -17,6 +20,7 @@ import kotlinx.coroutines.flow.Flow
  * A game of any kind: a video game, a board game, a tabletop RPG campaign, a card game, a phone game.
  * [genres] genre ids, comma-separated (domain/Genres.kt). [status] where it stands for the player.
  * [cover] a file in filesDir/covers. [pkg] the Android package of a phone game, for the usage tracker.
+ * [earlier] minutes played before Questling (carried over from Steam and the like): in the game's hours, not a session.
  */
 @Entity
 data class Game(
@@ -35,6 +39,7 @@ data class Game(
     val year: Int = 0,
     val maker: String = "",
     val best: Int = 0,                  // the best score ever (board and arcade games)
+    @ColumnInfo(defaultValue = "0") val earlier: Int = 0,
 ) {
     val genreList get() = genres.split(',').map { it.trim() }.filter { it.isNotEmpty() }
     companion object {
@@ -163,11 +168,15 @@ interface Dao0 {
     @Query("DELETE FROM Pet") suspend fun wipePets()
 }
 
-@Database(entities = [Game::class, Play::class, Seat::class, Friend::class, Pet::class], version = 1)
+@Database(entities = [Game::class, Play::class, Seat::class, Friend::class, Pet::class], version = 2)
 abstract class Db : RoomDatabase() {
     abstract fun dao(): Dao0
 
     companion object {
-        fun create(ctx: Context): Db = Room.databaseBuilder(ctx, Db::class.java, "questling.db").build()
+        /** 2: the hours played before Questling, on the game (#5). */
+        private val TO_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) = db.execSQL("ALTER TABLE Game ADD COLUMN earlier INTEGER NOT NULL DEFAULT 0")
+        }
+        fun create(ctx: Context): Db = Room.databaseBuilder(ctx, Db::class.java, "questling.db").addMigrations(TO_2).build()
     }
 }

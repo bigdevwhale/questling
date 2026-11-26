@@ -59,21 +59,28 @@ object Usage {
             val pkg = e.packageName ?: continue
             if (pkg in ignored || e.eventType !in setOf(RESUMED, PAUSED, STOPPED)) continue
             labels.getOrPut(pkg) { isGame(ctx, pkg, known) } ?: continue
-            events += Event(pkg, e.eventType == RESUMED, e.timeStamp)
+            events += Event(pkg, e.eventType == RESUMED, e.timeStamp, e.className ?: "")
         }
         cut(events, since, to) { labels[it] ?: it }
     }.getOrDefault(Scan(emptyList(), since))
 
-    /** A game coming on screen ([on]) or leaving it, at [time]. */
-    class Event(val pkg: String, val on: Boolean, val time: Long)
+    /** A game's screen [cls] coming on ([on]) or leaving it, at [time]. */
+    class Event(val pkg: String, val on: Boolean, val time: Long, val cls: String = "")
 
     /** Stretches out of a game's comings and goings, in time order; see [scan]. */
     fun cut(events: List<Event>, since: Long, to: Long, label: (String) -> String): Scan {
+        // a game is on screen while any of its screens is: one screen gives way to another (an ad, a loader) and the
+        // old one's late "stopped" comes after the new one is up – that is not the game ending (#4)
         val open = HashMap<String, Long>()
+        val up = HashMap<String, MutableSet<String>>()
         val spans = ArrayList<Span>()
         events.forEach { e ->
-            if (e.on) open.putIfAbsent(e.pkg, e.time)
-            else open.remove(e.pkg)?.let { st -> if (e.time > st) spans += Span(e.pkg, st, e.time, false) }
+            val screens = up.getOrPut(e.pkg) { HashSet() }
+            // a screen whose leaving got lost (a reboot) long ago must not keep the game "on" for good
+            if (e.on && open[e.pkg]?.let { e.time - it >= LOOK } == true) { screens.clear(); open.remove(e.pkg) }
+            if (e.on) { screens += e.cls; open.putIfAbsent(e.pkg, e.time) }
+            else if (screens.remove(e.cls) && screens.isEmpty())
+                open.remove(e.pkg)?.let { st -> if (e.time > st) spans += Span(e.pkg, st, e.time, false) }
         }
         // still on screen: runs up to [to]; a resume whose pause got lost (a reboot) long ago is dropped
         open.forEach { (pkg, st) -> if (to - st < LOOK) spans += Span(pkg, st, to, true) }

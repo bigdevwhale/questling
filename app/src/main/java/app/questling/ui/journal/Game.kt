@@ -101,7 +101,8 @@ fun GamePage(id: Long, d: Data, nav: Nav) {
     if (g == null) { if (d.games.isNotEmpty()) LaunchedEffect(Unit) { nav.stack.remove(Screen.GameInfo(id)) }; return }
     BackHandler { nav.pop() }
     val plays = d.byGame[id].orEmpty()
-    val min = plays.sumOf { it.minutes }
+    val min = plays.sumOf { it.minutes }        // the sessions'; [total] adds what was played before Questling
+    val total = min + g.earlier
     val col = gameColor(g)
     var note by remember(g.id) { mutableStateOf(g.note) }
     var editNote by remember { mutableStateOf(false) }
@@ -133,7 +134,8 @@ fun GamePage(id: Long, d: Data, nav: Nav) {
                 // the hours, and the two things to do
                 Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.Bottom) {
                     Column(Modifier.weight(1f)) {
-                        Text(if (min > 0) dur(min * 60) else tr("Ещё не играли", "Not played yet"), style = if (min > 0) T.big else T.h2)
+                        Text(if (total > 0) dur(total * 60) else tr("Ещё не играли", "Not played yet"), style = if (total > 0) T.big else T.h2)
+                        if (g.earlier > 0) Text(tr("из них ${dur(g.earlier * 60)} – до Questling", "${dur(g.earlier * 60)} of it before Questling"), style = T.small)
                         if (plays.isNotEmpty()) Text("${count(plays.size, "сессия", "сессии", "сессий", "session", "sessions")} · ${tr("последняя", "the last one")} ${relDay(plays.first().day, d.today)}", style = T.small)
                     }
                     if (g.finished > 0) Column(horizontalAlignment = Alignment.End) {
@@ -264,6 +266,7 @@ fun GameEditPage(scr: Screen.GameEdit, d: Data, nav: Nav) {
     var maker by remember { mutableStateOf(old?.maker ?: "") }
     var status by remember { mutableStateOf(old?.status ?: Game.PLAYING) }
     var cover by remember { mutableStateOf(old?.cover ?: "") }
+    var earlier by remember { mutableStateOf(old?.earlier?.takeIf { it > 0 }?.let { (it / 60).toString() } ?: "") }   // hours
     var found by remember { mutableStateOf<List<Draft>?>(null) }
     var busy by remember { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
@@ -328,10 +331,18 @@ fun GameEditPage(scr: Screen.GameEdit, d: Data, nav: Nav) {
             Field(year, { v -> year = v.filter { it.isDigit() }.take(4) }, tr("Год", "Year"), Modifier.width(96.dp), number = true)
             Field(maker, { maker = it }, tr("Студия или издатель", "Studio or publisher"), Modifier.weight(1f))
         }
+        // hours from before Questling, in one go (#5): Steam's thousands would take hundreds of sessions
+        Label(tr("Наиграно до Questling", "Played before Questling"))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Field(earlier, { v -> earlier = v.filter { it.isDigit() }.take(6).trimStart('0') }, "0", Modifier.width(110.dp), number = true, center = true)
+            Text(tr("ч", "h"), style = T.body)
+        }
+        Text(tr("Например, часы из Steam. Они войдут в часы игры, но не станут сессией и не дадут наград.",
+            "Hours from Steam, say. They count in the game's hours, but are not a session and bring no rewards."), style = T.tiny, modifier = Modifier.padding(top = 6.dp))
         Btn(tr("Сохранить", "Save"), Modifier.fillMaxWidth().padding(top = 22.dp), enabled = title.isNotBlank()) {
             scope.launch {
                 val g = (old ?: Game(title = "", added = 0)).copy(title = title.trim(), kind = kind, platform = if (Kinds.table(kind)) "" else platform, genres = genres.joinToString(","), cover = cover,
-                    year = year.toIntOrNull() ?: 0, maker = maker.trim())
+                    year = year.toIntOrNull() ?: 0, maker = maker.trim(), earlier = (earlier.toIntOrNull() ?: 0) * 60 + (old?.earlier ?: 0) % 60)
                 val id = c.saveGame(if (old == null) g.copy(status = status) else g)
                 if (old != null) { if (status != old.status) c.setStatus(g.copy(id = id, status = old.status), status); if (old.cover != cover) Media.deleteCover(ctx, old.cover) }
                 nav.pop()

@@ -131,7 +131,8 @@ class Data(val s: Settings, val games: List<Game>, val plays: List<Play>, val se
     val byGame = plays.groupBy { it.gameId }
     val seatsByPlay = seats.groupBy { it.playId }
     val facts by lazy { Facts(s, games, plays, seats, friends, pets, today) }
-    fun minutes(gameId: Long) = byGame[gameId]?.sumOf { it.minutes } ?: 0
+    /** A game's hours in minutes: its sessions and what was played before Questling. */
+    fun minutes(gameId: Long) = (byGame[gameId]?.sumOf { it.minutes } ?: 0) + (gameById[gameId]?.earlier ?: 0)
     fun last(gameId: Long) = byGame[gameId]?.firstOrNull()
     /** Games to offer first: the ones being played, by the last session. */
     val recent: List<Game> = games.filter { it.status != Game.WISH }.sortedWith(compareByDescending<Game> { last(it.id)?.start ?: 0L }.thenByDescending { it.id })

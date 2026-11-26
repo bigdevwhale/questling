@@ -6,6 +6,19 @@ line "<!-- tg", then 2-4 short lines in Russian for users (what is new, what is 
 then close it like any HTML comment. The release notes carry it, and the chat bot posts those lines.
 -->
 
+## [1.3.1] - 2026-11-26
+
+### Added
+- **Hours played before Questling (#5):** a game's card takes the hours you had before Questling – thousands from Steam, say – in one go. They count in the game's hours, but are not a session, so the average and longest sessions stay true, and they bring no rewards. The "Already played" form points to it.
+
+### Fixed
+- **Phone game sessions could go missing (#4).** When a game switched screens inside itself – an ad, a loader, a login – the tracker took it for the game closing and lost the rest of the session. A game now counts as on screen while any of its screens is.
+
+<!-- tg
+Новое: в карточке игры можно сразу вписать часы, наигранные до Questling, например тысячи часов из Steam. Они войдут в часы игры, но не станут сессией
+Исправлено: сессии в играх на телефоне иногда не записывались, если в игре показывалась реклама или менялся экран
+-->
+
 ## [1.3.0] - 2026-11-20
 
 ### Changed

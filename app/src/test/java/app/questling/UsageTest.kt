@@ -41,6 +41,26 @@ class UsageTest {
         assertEquals(listOf(17), r.found.map { it.minutes })
     }
 
+    // #4: an ad (or a loader) comes up inside the game; the main screen's late "stopped" arrives after the ad is up
+    @Test fun aScreenChangeInsideTheGameDoesNotEndTheSession() {
+        val ev = listOf(
+            Event("g", true, 100 * m, "Main"), Event("g", false, 110 * m, "Main"), Event("g", true, 110 * m, "Ad"),
+            Event("g", false, 110 * m + 500, "Main"),                       // STOPPED of Main, after Ad resumed
+            Event("g", false, 111 * m, "Ad"), Event("g", true, 111 * m, "Main"),
+            Event("g", false, 111 * m + 500, "Ad"),                         // STOPPED of Ad, after Main resumed
+            Event("g", false, 140 * m, "Main"), Event("g", false, 140 * m + 500, "Main"))
+        val r = cut(ev, 0, 150)
+        assertEquals(listOf(40), r.found.map { it.minutes })
+        assertEquals(150 * m, r.upTo)
+    }
+
+    @Test fun aScreenWhoseLeavingGotLostDoesNotHoldTheGameForever() {
+        val ev = listOf(Event("g", true, 0, "Old")) + listOf(Event("g", true, 500 * m, "Main"), Event("g", false, 520 * m, "Main"))
+        val r = cut(ev, 400, 530)
+        assertEquals(listOf(20), r.found.map { it.minutes })
+        assertEquals(530 * m, r.upTo)
+    }
+
     @Test fun aLostPauseLongAgoDoesNotHoldEveryLookBack() {
         val r = cut(listOf(Event("g", true, 0)) + play("h", 500, 510), 400, 520)
         assertEquals(listOf("h"), r.found.map { it.pkg })
