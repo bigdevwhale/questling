@@ -6,6 +6,15 @@ line "<!-- tg", then 2-4 short lines in Russian for users (what is new, what is 
 then close it like any HTML comment. The release notes carry it, and the chat bot posts those lines.
 -->
 
+## [1.3.2] - 2026-11-27
+
+### Fixed
+- **A finished session could go missing.** When the app had been closed in the background during a long session – a late evening on the PC, say – and was opened again to finish it, «Write it down» could lose the session. Now a session is let go only once it is safely written down.
+
+<!-- tg
+Исправлено: долгая сессия (например, вечер за ПК) иногда не записывалась после нажатия «Записать», если Questling успел закрыться в фоне. Теперь сессия сохраняется всегда
+-->
+
 ## [1.3.1] - 2026-11-26
 
 ### Added

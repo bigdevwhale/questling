@@ -32,11 +32,13 @@ import app.questling.domain.today
 import app.questling.domain.weekStart
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlin.random.Random
 
 class AppContainer(context: Context) {
@@ -180,7 +182,10 @@ class AppContainer(context: Context) {
     // ---------- sessions ----------
 
     /** A session written down: gold by minutes and perks, food for the team, season xp, the game's status and best score. Returns its id. */
-    suspend fun addPlay(p0: Play, seats: List<Seat> = emptyList()): Long = lock.withLock {
+    suspend fun addPlay(p0: Play, seats: List<Seat> = emptyList()): Long = lock.withLock { insertPlay(p0, seats) }
+
+    /** [addPlay] for a caller already holding the lock. */
+    private suspend fun insertPlay(p0: Play, seats: List<Seat>): Long {
         val before = dao.playList()
         var g = dao.gameList().firstOrNull { it.id == p0.gameId }
         var p = p0
@@ -230,19 +235,26 @@ class AppContainer(context: Context) {
             g.status == Game.SHELF || g.status == Game.WISH || g.status == Game.DROPPED -> dao.update(g.copy(status = Game.PLAYING))
         }
         afterAct()
-        id
+        return id
     }
 
     /** The running session ends and is written down with what the finish sheet gathered. */
-    suspend fun finishLive(result: Int, score: Int, mood: Int, note: String, shots: List<String>, moment: String, minutes: Int, seats: List<Seat>): Long {
+    /**
+     * The running session is let go only once it is written down, all under the lock and out of the caller's hands:
+     * it used to be cleared first, the live page then closed and took the save with it while the lock was busy
+     * (the day's housekeeping on a late start) – and the session was gone.
+     */
+    suspend fun finishLive(result: Int, score: Int, mood: Int, note: String, shots: List<String>, moment: String, minutes: Int, seats: List<Seat>): Long =
+        withContext(NonCancellable) { lock.withLock {
         val l = settings.now().live
-        if (!l.on) return 0
-        settings.update { it.copy(live = Live()) }
+        if (!l.on) return@withLock 0L
         val day = if (clock() != today()) clock() else dayOf(l.start)
-        return addPlay(Play(gameId = l.gameId, day = day, start = l.start, minutes = minutes.coerceAtLeast(1), platform = l.platform, result = result, score = score,
+        val id = insertPlay(Play(gameId = l.gameId, day = day, start = l.start, minutes = minutes.coerceAtLeast(1), platform = l.platform, result = result, score = score,
             friends = l.friends.joinToString(","), mood = mood, note = note.trim(), shots = shots.joinToString("\n"), breaks = l.breaks, moment = moment, tools = l.tools,
             place = seats.firstOrNull { it.friendId == 0L }?.place ?: 0), seats)
-    }
+        settings.update { it.copy(live = Live()) }
+        id
+    } }
 
     /** An edited session can finish a quest or bring a find too. */
     suspend fun updatePlay(p: Play, seats: List<Seat>? = null) = lock.withLock {
